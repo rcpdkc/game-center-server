@@ -210,8 +210,8 @@ def send_telemetry():
         except Exception as e:
             print(f"[Telemetry] Hata olustu: {e}")
             
-        # Her 15 dakikada bir veri gonder (900 saniye)
-        time.sleep(900)
+        # Her 5 dakikada bir veri gonder (10 kafe icin Vercel free limit altinda kalir)
+        time.sleep(300)
 
 def start_telemetry_thread():
     t = threading.Thread(target=send_telemetry, daemon=True)
