@@ -435,14 +435,18 @@ function PlusModal({ onClose }) {
         storage.setItem('plus_user', JSON.stringify(res.data.user));
         storage.setItem('plus_permissions', JSON.stringify(res.data.user.group_permissions || []));
 
-        // ── Gerçek kayıtlı kafe adını yerel ayarlara yaz ──────────────────────
+        // ── Gerçek kayıtlı kafe adını ve email'i yerel ayarlara yaz ────────────
         const realCafeName = res.data.user?.cafe_name;
-        if (realCafeName) {
+        const cloudEmail = res.data.user?.email;
+        const syncData = {};
+        if (realCafeName) syncData.server_name = realCafeName;
+        if (cloudEmail) syncData.cloud_email = cloudEmail;
+        if (Object.keys(syncData).length > 0) {
           try {
-            await axios.put('/api/settings', { server_name: realCafeName });
-            console.log('[Cloud Login] Kafe adı guncellendi:', realCafeName);
+            await axios.put('/api/settings', syncData);
+            console.log('[Cloud Login] Ayarlar guncellendi:', syncData);
           } catch (syncErr) {
-            console.warn('[Cloud Login] Kafe adı senkronize edilemedi:', syncErr.message);
+            console.warn('[Cloud Login] Ayarlar senkronize edilemedi:', syncErr.message);
           }
         }
 
