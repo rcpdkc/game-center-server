@@ -446,6 +446,23 @@ function PlusModal({ onClose }) {
           }
         }
 
+        // ── Otomatik cafe_id bağlama: sunucunun cloud_cafe_id'sini cloud hesabına yaz ──
+        try {
+          const settingsRes = await axios.get('/api/settings');
+          const localCafeId = settingsRes.data?.cloud_cafe_id;
+          const cloudEmail = res.data.user?.email;
+          if (localCafeId && cloudEmail) {
+            await axios.post('https://gamecenter.rcpdkc.com/api/users', {
+              action: 'self-link',
+              email: cloudEmail,
+              cafe_id: localCafeId,
+            });
+            console.log('[Cloud Login] cafe_id otomatik bağlandı:', localCafeId);
+          }
+        } catch (linkErr) {
+          console.warn('[Cloud Login] Otomatik bağlama başarısız:', linkErr.message);
+        }
+
         window.location.reload();
       } else {
         setError(res.data.error || 'Giriş başarısız.');
