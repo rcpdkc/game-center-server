@@ -141,6 +141,42 @@ def collect_telemetry():
         """)
         top_games = [{"name": r["name"], "clicks": r["click_count"]} for r in cur.fetchall()]
         
+        # Per-PC musteri bilgisayarlari verisi
+        cur.execute("""
+            SELECT hostname, ip, cpu, gpu_model, os,
+                   cpu_temp, cpu_load, gpu_temp, gpu_load,
+                   ram_total_gb, ram_usage, ram_load, ram_speed_mhz,
+                   motherboard, boot_mode, tpm_version, hertz,
+                   link_speed_mbps, mac_address, top_io_process, last_seen
+            FROM clients
+            ORDER BY last_seen DESC
+        """)
+        clients_list = []
+        for r in cur.fetchall():
+            clients_list.append({
+                "hostname": r["hostname"],
+                "ip": r["ip"],
+                "cpu": r["cpu"],
+                "gpu": r["gpu_model"],
+                "os": r["os"],
+                "cpu_temp": r["cpu_temp"],
+                "cpu_load": r["cpu_load"],
+                "gpu_temp": r["gpu_temp"],
+                "gpu_load": r["gpu_load"],
+                "ram_total_gb": r["ram_total_gb"],
+                "ram_usage": r["ram_usage"],
+                "ram_load": r["ram_load"],
+                "ram_speed_mhz": r["ram_speed_mhz"],
+                "motherboard": r["motherboard"],
+                "boot_mode": r["boot_mode"],
+                "tpm_version": r["tpm_version"],
+                "hertz": r["hertz"],
+                "link_speed_mbps": r["link_speed_mbps"],
+                "mac_address": r["mac_address"],
+                "top_io_process": r["top_io_process"],
+                "last_seen": r["last_seen"],
+            })
+
         cloud_email = get_cloud_email(conn)
 
         payload = {
@@ -150,6 +186,7 @@ def collect_telemetry():
             "active_clients": active_clients,
             "hardware_stats": hardware_stats,
             "top_games": top_games,
+            "clients_data": clients_list,
             "server_version": get_server_version(),
         }
         if cloud_email:
