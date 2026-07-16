@@ -53,6 +53,19 @@ def get_cloud_email(conn):
     row = cur.fetchone()
     return row['value'] if row else None
 
+def get_server_version():
+    """server/VERSION dosyasindan surumu oku."""
+    try:
+        # Calistirilabilir dosyanin yanindaki VERSION
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        version_path = os.path.join(base_dir, 'VERSION')
+        if os.path.exists(version_path):
+            with open(version_path, 'r', encoding='utf-8') as f:
+                return f.read().strip()
+    except Exception:
+        pass
+    return None
+
 def collect_telemetry():
     conn = get_db_connection()
     try:
@@ -91,22 +104,23 @@ def collect_telemetry():
         cpu_stats = [{"name": r["cpu"], "count": r["count"]} for r in cur.fetchall()]
 
         
-        # Sicaklik verileri (OSD/clients tablosundan ortalama)
+        # Sicaklik verileri (clients tablosundan ortalama - son 24 saat)
         try:
             cur.execute("""
                 SELECT AVG(CAST(cpu_temp AS REAL)) as avg_cpu,
                        AVG(CAST(gpu_temp AS REAL)) as avg_gpu
                 FROM clients
-                WHERE cpu_temp IS NOT NULL AND cpu_temp != ''
+                WHERE cpu_temp IS NOT NULL
                   AND CAST(cpu_temp AS REAL) > 0
-                  AND last_seen >= strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime', '-60 minutes')
+                  AND last_seen >= strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime', '-1440 minutes')
             """)
             temp_row = cur.fetchone()
             cpu_temp_avg = round(temp_row['avg_cpu']) if temp_row and temp_row['avg_cpu'] else None
             gpu_temp_avg = round(temp_row['avg_gpu']) if temp_row and temp_row['avg_gpu'] else None
-        except Exception:
+        except Exception as e:
             cpu_temp_avg = None
             gpu_temp_avg = None
+            print(f"[Telemetry] Sicaklik sorgu hatasi: {e}")
 
         hardware_stats = {
             "gpus": gpu_stats,
@@ -135,7 +149,8 @@ def collect_telemetry():
             "hwid": hwid,
             "active_clients": active_clients,
             "hardware_stats": hardware_stats,
-            "top_games": top_games
+            "top_games": top_games,
+            "server_version": get_server_version(),
         }
         if cloud_email:
             payload["cloud_email"] = cloud_email
