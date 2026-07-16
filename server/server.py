@@ -2836,11 +2836,13 @@ def api_update_apply():
             for old_f in old_files:
                 try:
                     os.remove(old_f)
-                    logging.getLogger('gameserver').info(f"[Update] Eski kurulum dosyasi temizlendi: {old_f}")
+                    print(f"[Update] Eski kurulum dosyasi temizlendi: {old_f}")
                 except Exception as e:
-                    logging.getLogger('gameserver').warning(f"[Update] Eski dosya silinemedi: {old_f} - {e}")
+                    print(f"[Update] Eski dosya silinemedi: {old_f} - {e}")
 
             # 1. Geçici dosyaya indir
+            tmp_dir = _tempfile.gettempdir()
+            os.makedirs(tmp_dir, exist_ok=True)  # Temp\1\ gibi alt klasörler silinmişse yeniden oluştur
             tmp_path = os.path.join(tmp_dir, asset_name)
             with _update_lock:
                 _update_state["temp_file"] = tmp_path
