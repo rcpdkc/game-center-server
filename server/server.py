@@ -4,6 +4,7 @@ Game Center -- Flask REST API Server
 import os
 import sys
 import uuid
+import secrets
 import logging
 import psutil
 import socket
@@ -50,7 +51,22 @@ werkzeug_logger.addHandler(file_handler)
 gameserver_logger = logging.getLogger('gameserver')
 gameserver_logger.setLevel(logging.INFO)
 
-frontend_dist_dir = os.path.join(get_project_root(), "web_admin", "dist")
+def _resolve_frontend_dir():
+    """web_admin/dist konumunu sağlam biçimde bulur.
+    PyInstaller 6 bundle veriyi _internal/ altına koyar (get_data_dir/_MEIPASS),
+    kurulum (.iss) ise exe'nin yanına (get_project_root) kopyalar; kaynak modda
+    proje kökündedir. index.html'i içeren ilk konumu seç."""
+    candidates = [
+        os.path.join(get_project_root(), "web_admin", "dist"),  # kurulum / exe yanı
+        os.path.join(get_data_dir(), "web_admin", "dist"),      # PyInstaller bundle (_MEIPASS)
+    ]
+    for c in candidates:
+        if os.path.isfile(os.path.join(c, "index.html")):
+            return c
+    return candidates[0]
+
+frontend_dist_dir = _resolve_frontend_dir()
+logging.info(f"Frontend dizini: {frontend_dist_dir}")
 app = Flask(__name__, static_folder=frontend_dist_dir)
 CORS(app)
 
@@ -1332,23 +1348,61 @@ def clients_heartbeat():
     db.upsert_client(body)
     return ok({"message": "Kaydedildi"})
 
+# --- Komut kanali guvenligi (Faz 4) ---
+def get_command_key() -> str:
+    """Harici komut push'u icin paylasimli gizli anahtar. Yoksa uretilir ve
+    settings'e kaydedilir. Bu anahtar SADECE yetkili gonderenlere verilmelidir."""
+    key = db.get_setting("command_key", None)
+    if not key:
+        key = secrets.token_hex(32)
+        db.set_setting("command_key", key)
+        logging.info("Yeni command_key uretildi (settings.command_key).")
+    return key
+
+
+def _get_client_ip(hostname: str):
+    """Bir hostname icin en son kaydedilen client IP'sini dondurur (heartbeat)."""
+    try:
+        with db.get_connection() as conn:
+            row = conn.execute("SELECT ip FROM clients WHERE hostname=?", (hostname,)).fetchone()
+            return row["ip"] if row and row["ip"] else None
+    except Exception as e:
+        logging.warning(f"_get_client_ip hata: {e}")
+        return None
+
+
 @app.route("/api/clients/commands", methods=["GET"])
 def get_client_commands():
     hostname = request.args.get("hostname", "")
     if not hostname:
         return err("hostname gerekli", 400)
+    # IP baglama: bir hostname'in komutlarini yalnizca o hostname'in kayitli
+    # IP'sinden gelen istekler cekebilir. Boylece baska bir makine (musteri)
+    # kurbanin hostname'iyle poll yapip komutlarini ( or. steam sifresi) calamaz.
+    # Kafe PC'leri sabit/rezerve IP kullandigindan bu guvenlidir.
+    stored_ip = _get_client_ip(hostname)
+    if stored_ip and request.remote_addr and request.remote_addr != stored_ip:
+        logging.warning(f"Komut poll reddedildi: {hostname} kayitli IP={stored_ip}, istek IP={request.remote_addr}")
+        return err("Bu hostname baska bir IP'ye kayitli.", 403)
     cmds = cmd_pop_all(hostname)
     return ok(cmds)
 
 @app.route("/api/clients/commands", methods=["POST"])
 @require_json
 def add_client_command():
+    # Yetkilendirme: harici komut push'u paylasimli anahtar gerektirir.
+    # (Sunucu-ici cmd_push cagrilari bu endpoint'ten gecmez, etkilenmez.)
+    provided = request.headers.get("X-Command-Key", "")
+    if not provided or not secrets.compare_digest(provided, get_command_key()):
+        logging.warning(f"Yetkisiz komut push denemesi: IP={request.remote_addr}")
+        return err("Yetkisiz komut gonderimi.", 403)
+
     body = request.get_json()
     hostname = body.get("hostname")
     command = body.get("command")
     if not hostname or not command:
         return err("hostname ve command gerekli", 400)
-    
+
     cmd_push(hostname, command)
     return ok({"message": "Komut sÃƒâ€Ã‚Â±raya eklendi", "command": command})
 

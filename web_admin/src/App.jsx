@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { Sun, Moon, Server, Menu, Bell, AlertTriangle, X, Shield, Trash2, Settings, Wifi, Activity, ChevronDown, Monitor, CheckCircle2, XCircle, Lock, Cloud, CheckCircle, LogOut, Sparkles, Loader2, Megaphone } from 'lucide-react';
+import { Sun, Moon, Server, Menu, Bell, AlertTriangle, X, Shield, Trash2, Settings, Wifi, Activity, ChevronDown, Monitor, CheckCircle2, XCircle, Cloud, CheckCircle, LogOut, Sparkles, Loader2, Megaphone } from 'lucide-react';
 import axios from 'axios';
 
 import { ToastProvider, useToast } from './components/Toast';
@@ -207,42 +207,24 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
                     </span>
                   )}
                 </span>
-                {!isAllowed && !collapsed && (
-                  <div className="mr-3 text-gray-500/40 group-hover:text-amber-500 transition-colors">
-                    <Lock size={14} />
-                  </div>
-                )}
+
               </>
             );
 
             return (
               <li key={item.path} className="relative group">
-                {isAllowed ? (
-                  <Link 
-                    to={item.path}
-                    className={`flex items-center h-[50px] rounded-[12px] transition-all duration-400 ${
-                      active ? 'bg-accent/10' : 'hover:bg-accent/5'
-                    }`}
-                  >
-                    {content}
-                  </Link>
-                ) : (
-                  <div 
-                    onClick={() => {
-                      toast.error(isPlusActive ? "Bu modül için yetkiniz bulunmuyor." : "Bu modül lisans gerektirir. Lütfen Gamecenter Plus'a giriş yapın.");
-                      navigate('/plus');
-                      if (mobileOpen) setMobileOpen(false);
-                    }}
-                    className={`flex items-center h-[50px] rounded-[12px] transition-all duration-400 cursor-pointer opacity-50 hover:opacity-100 hover:bg-black/10`}
-                    title={isPlusActive ? "Bu modül için yetkiniz bulunmuyor." : "Bu modül lisans gerektirir. Lütfen Gamecenter Plus'a giriş yapın."}
-                  >
-                    {content}
-                  </div>
-                )}
+                <Link 
+                  to={item.path}
+                  className={`flex items-center h-[50px] rounded-[12px] transition-all duration-400 ${
+                    active ? 'bg-accent/10' : 'hover:bg-accent/5'
+                  }`}
+                >
+                  {content}
+                </Link>
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
                   <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%+15px)] z-20 bg-white shadow-lg text-[#11101D] px-[15px] py-[6px] rounded-[5px] text-[15px] font-medium opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300 whitespace-nowrap lg:block hidden">
-                    {item.label} {!isAllowed && '(Kilitli)'}
+                    {item.label}
                   </div>
                 )}
               </li>
@@ -489,171 +471,199 @@ function PlusModal({ onClose }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-4xl bg-[var(--color-sidebar)] border border-border rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300">
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-[var(--text-muted)] hover:text-white bg-black/20 hover:bg-black/40 rounded-xl transition-all z-20">
-          <X size={20} />
-        </button>
-        
-        {existingToken && plusUser ? (
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-10 relative z-10">
-            <div className="flex flex-col items-center shrink-0">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(249,115,22,0.3)] border-4 border-orange-500/20">
-                <CheckCircle size={40} className="text-white" />
-              </div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">Plus Aktif</h2>
-              <p className="text-[var(--text-muted)] text-sm font-medium mt-1">Bağlantı Kuruldu</p>
-              <button onClick={handleLogout} title="Hesaptan Çıkış Yap" className="mt-6 group px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 rounded-xl transition-all duration-300 flex items-center gap-2 text-sm font-bold shadow-lg shadow-red-500/5 hover:shadow-red-500/20">
-                <span className="group-hover:-translate-x-1 transition-transform">Güvenli Çıkış</span>
-                <LogOut size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-            <div className="flex-1 w-full text-center md:text-left">
-              <div className="flex items-start">
-                <h1 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] mb-2">
-                  Hoş geldiniz, {plusUser.cafe_name || plusUser.first_name}.
-                </h1>
-              </div>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-8 mt-2">
-                <span className="text-[var(--text-muted)] text-lg">Lisans Grubunuz:</span>
-                <span className="font-bold px-3 py-1 bg-white/10 border border-white/10 rounded-xl text-white shadow-sm" style={{ backgroundColor: plusUser.group_color ? plusUser.group_color + '44' : '' }}>
-                  {plusUser.group_name || 'Gruba Atanmamış'}
-                </span>
-                <span className="text-[var(--text-muted)] text-lg px-2">|</span>
-                {plusUser.group_expires_at ? (
-                  plusUser.license_expired ? (
-                    <span className="px-3 py-1 bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl text-sm font-bold animate-pulse">Süresi Doldu</span>
-                  ) : (
-                    <span className="px-3 py-1 bg-orange-500/20 border border-orange-500/30 text-orange-400 rounded-xl text-sm font-bold">
-                      {Math.max(0, Math.ceil((new Date(plusUser.group_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))} Gün Kaldı
-                    </span>
-                  )
-                ) : (
-                  <span className="px-3 py-1 bg-gray-500/20 border border-gray-500/30 text-gray-300 rounded-xl text-sm font-bold">
-                    Süresiz Lisans
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                <div className="bg-black/20 p-5 rounded-2xl border border-border flex flex-col justify-center relative overflow-hidden group hover:border-white/10 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-orange-500/10 transition-colors"></div>
-                  <span className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 relative z-10">
-                    <i className="bx bx-user text-orange-500 text-sm"></i> Hesap Sahibi
-                  </span>
-                  <span className="text-white font-medium text-lg relative z-10">{plusUser.first_name} {plusUser.last_name}</span>
-                  <span className="text-[13px] text-gray-400 mt-1 relative z-10">{plusUser.email}</span>
-                </div>
-                
-                <div className="bg-black/20 p-5 rounded-2xl border border-border flex flex-col justify-center relative overflow-hidden group hover:border-white/10 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-emerald-500/10 transition-colors"></div>
-                  <span className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 relative z-10">
-                    <i className="bx bx-buildings text-emerald-500 text-sm"></i> İşletme Bilgisi
-                  </span>
-                  <span className="text-white font-medium text-lg relative z-10">{plusUser.cafe_name || 'Belirtilmemiş'}</span>
-                  {plusUser.phone && <span className="text-[13px] text-gray-400 mt-1 relative z-10">{plusUser.phone}</span>}
-                </div>
-                
-                <div className="bg-black/20 p-5 rounded-2xl border border-border flex flex-col justify-center relative overflow-hidden group hover:border-white/10 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
-                  <span className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 relative z-10">
-                    <i className="bx bx-calendar-star text-blue-500 text-sm"></i> Üyelik Başlangıcı
-                  </span>
-                  <span className="text-white font-medium text-lg relative z-10">
-                    {plusUser.created_at ? new Date(plusUser.created_at).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Bilinmiyor'}
-                  </span>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
+
+      <div style={{ position:'absolute', top:'20%', left:'25%', width:'500px', height:'500px', background:'radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)', borderRadius:'50%', pointerEvents:'none', filter:'blur(40px)' }} />
+      <div style={{ position:'absolute', bottom:'20%', right:'20%', width:'400px', height:'400px', background:'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', borderRadius:'50%', pointerEvents:'none', filter:'blur(40px)' }} />
+
+      <div className="w-full max-w-[780px] relative animate-in zoom-in-95 duration-300">
+        <div style={{ padding:'1px', borderRadius:'28px', background:'linear-gradient(135deg, rgba(249,115,22,0.3) 0%, rgba(255,255,255,0.06) 40%, rgba(99,102,241,0.2) 100%)', boxShadow:'0 0 0 1px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.8), 0 0 60px rgba(249,115,22,0.06)' }}>
+          <div style={{ background:'linear-gradient(160deg, #0e1420 0%, #090d14 60%, #0b0f1c 100%)', borderRadius:'27px', overflow:'hidden', position:'relative' }}>
+
+            <button onClick={onClose}
+              style={{ position:'absolute', top:'18px', right:'18px', zIndex:30, padding:'8px', borderRadius:'12px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.35)', cursor:'pointer', transition:'all 0.2s', display:'flex', alignItems:'center', justifyContent:'center' }}
+              onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.color='rgba(255,255,255,0.9)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.color='rgba(255,255,255,0.35)'; }}
+            ><X size={16} /></button>
+
+            {existingToken && plusUser ? (
+              <div style={{ display:'flex', minHeight:'460px' }}>
+
+                {/* SOL */}
+                <div style={{ width:'240px', flexShrink:0, padding:'40px 28px', display:'flex', flexDirection:'column', alignItems:'center', background:'linear-gradient(180deg, rgba(249,115,22,0.07) 0%, rgba(249,115,22,0.02) 60%, transparent 100%)', borderRight:'1px solid rgba(255,255,255,0.05)', position:'relative' }}>
+                  <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize:'20px 20px', pointerEvents:'none' }} />
+
+                  <div style={{ position:'relative', marginBottom:'20px', zIndex:1 }}>
+                    <div style={{ width:'88px', height:'88px', borderRadius:'24px', background:'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 0 1px rgba(249,115,22,0.3), 0 0 30px rgba(249,115,22,0.25), 0 8px 32px rgba(0,0,0,0.4)', fontSize:'36px', fontWeight:900, color:'white' }}>
+                      {(plusUser.cafe_name || plusUser.first_name || '?')[0].toUpperCase()}
+                    </div>
+                    <div style={{ position:'absolute', bottom:'-4px', right:'-4px', width:'24px', height:'24px', borderRadius:'50%', background: plusUser.license_expired ? '#ef4444' : '#10b981', border:'3px solid #090d14', boxShadow: plusUser.license_expired ? '0 0 8px rgba(239,68,68,0.6)' : '0 0 8px rgba(16,185,129,0.6)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <CheckCircle size={11} color="white" />
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign:'center', zIndex:1, marginBottom:'14px' }}>
+                    <div style={{ fontSize:'15px', fontWeight:800, color:'white', lineHeight:1.3 }}>{plusUser.cafe_name || `${plusUser.first_name} ${plusUser.last_name}`}</div>
+                    <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginTop:'4px', wordBreak:'break-all' }}>{plusUser.email}</div>
+                  </div>
+
+                  <div style={{ zIndex:1, padding:'5px 14px', borderRadius:'20px', fontSize:'11px', fontWeight:700, background: plusUser.group_color ? plusUser.group_color + '20' : 'rgba(255,255,255,0.07)', border:`1px solid ${plusUser.group_color ? plusUser.group_color + '50' : 'rgba(255,255,255,0.12)'}`, color: plusUser.group_color || '#94a3b8' }}>
+                    {plusUser.group_name || 'Gruba Atanmamış'}
+                  </div>
+
+                  <div style={{ zIndex:1, marginTop:'12px', padding:'4px 12px', borderRadius:'20px', fontSize:'11px', fontWeight:600, display:'flex', alignItems:'center', gap:'6px', background: plusUser.license_expired ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border:`1px solid ${plusUser.license_expired ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}`, color: plusUser.license_expired ? '#f87171' : '#34d399' }}>
+                    <span style={{ width:'6px', height:'6px', borderRadius:'50%', background: plusUser.license_expired ? '#f87171' : '#34d399', boxShadow: plusUser.license_expired ? '0 0 6px #f87171' : '0 0 6px #34d399', display:'block' }} />
+                    {plusUser.license_expired ? 'Süresi Doldu' : 'Aktif & Bağlı'}
+                  </div>
+
+                  <div style={{ flex:1 }} />
+
+                  <button onClick={handleLogout}
+                    style={{ zIndex:1, display:'flex', alignItems:'center', gap:'7px', padding:'8px 16px', borderRadius:'12px', fontSize:'12px', fontWeight:600, color:'rgba(248,113,113,0.6)', background:'transparent', border:'1px solid transparent', cursor:'pointer', transition:'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.color='#f87171'; e.currentTarget.style.background='rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.2)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color='rgba(248,113,113,0.6)'; e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='transparent'; }}
+                  ><LogOut size={13} />Güvenli Çıkış</button>
                 </div>
 
-                <div className="bg-black/20 p-5 rounded-2xl border border-border flex flex-col justify-center relative overflow-hidden group hover:border-white/10 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-rose-500/10 transition-colors"></div>
-                  <span className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 relative z-10">
-                    <i className="bx bx-check-shield text-rose-500 text-sm"></i> Lisans Geçerlilik
-                  </span>
-                  <span className={`font-bold text-lg relative z-10 ${plusUser.license_expired ? 'text-red-400' : (plusUser.group_expires_at ? 'text-emerald-400' : 'text-blue-400')}`}>
-                    {plusUser.group_expires_at ? new Date(plusUser.group_expires_at).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Ömür Boyu (Süresiz)'}
-                  </span>
+                {/* SAĞ */}
+                <div style={{ flex:1, padding:'40px 36px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                  <div style={{ marginBottom:'28px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
+                      <span style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.12em', color:'rgba(249,115,22,0.6)', textTransform:'uppercase' }}>Gamecenter Plus</span>
+                      <div style={{ flex:1, height:'1px', background:'linear-gradient(90deg, rgba(249,115,22,0.2) 0%, transparent 100%)' }} />
+                    </div>
+                    <h1 style={{ fontSize:'26px', fontWeight:900, color:'white', lineHeight:1.2, margin:0 }}>
+                      Hoş geldiniz,<br />
+                      <span style={{ background:'linear-gradient(90deg, #fb923c, #f97316)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                        {plusUser.cafe_name || plusUser.first_name}
+                      </span>
+                    </h1>
+                    <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.35)', marginTop:'8px' }}>Bulut hesabınız aktif ve sunucuya bağlı.</p>
+                  </div>
+
+                  <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                    {[
+                      { icon:'bx bx-user', color:'#f97316', label:'Hesap Sahibi', value:`${plusUser.first_name} ${plusUser.last_name}`, sub:null },
+                      { icon:'bx bx-buildings', color:'#10b981', label:'İşletme', value:plusUser.cafe_name || 'Belirtilmemiş', sub:plusUser.phone || null },
+                      { icon:'bx bx-calendar', color:'#6366f1', label:'Üyelik Başlangıcı', value:plusUser.created_at ? new Date(plusUser.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}) : 'Bilinmiyor', sub:null },
+                    ].map((item, i) => (
+                      <div key={i}
+                        style={{ padding:'14px 16px', borderRadius:'14px', background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.07)', transition:'all 0.2s', cursor:'default', display:'flex', alignItems:'center', gap:'14px' }}
+                        onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.12)'; e.currentTarget.style.transform='translateX(3px)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.025)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.transform='translateX(0)'; }}
+                      >
+                        <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.color+'18', border:`1px solid ${item.color}28`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                          <i className={item.icon} style={{ color:item.color, fontSize:'16px' }} />
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.08em', color:'rgba(255,255,255,0.28)', textTransform:'uppercase', marginBottom:'3px' }}>{item.label}</div>
+                          <div style={{ fontSize:'14px', fontWeight:700, color:'rgba(255,255,255,0.92)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.value}</div>
+                          {item.sub && <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)', marginTop:'2px' }}>{item.sub}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-sm mx-auto relative z-10">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 border border-orange-500/20 mb-5 shadow-lg shadow-orange-500/10">
-                <Cloud size={30} className="text-orange-400" />
-              </div>
-              <h2 className="text-2xl font-black text-white mb-1 tracking-tight">Gamecenter Plus</h2>
-              <p className="text-[var(--text-muted)] text-sm">Gelişmiş bulut ağına giriş yapın</p>
-            </div>
-            
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2.5 text-red-400 mb-6 font-medium text-[13px] leading-tight">
-                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
-                <span>{error}</span>
+
+            ) : (
+
+              <div style={{ display:'flex', minHeight:'440px' }}>
+
+                {/* SOL brand */}
+                <div style={{ width:'220px', flexShrink:0, padding:'40px 28px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.03) 100%)', borderRight:'1px solid rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
+                  <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize:'18px 18px', pointerEvents:'none' }} />
+                  <div style={{ position:'absolute', top:'-60px', left:'-60px', width:'200px', height:'200px', background:'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)', borderRadius:'50%', pointerEvents:'none' }} />
+                  <div style={{ zIndex:1, textAlign:'center' }}>
+                    <div style={{ width:'64px', height:'64px', borderRadius:'18px', margin:'0 auto 20px', background:'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(79,70,229,0.15) 100%)', border:'1px solid rgba(99,102,241,0.3)', boxShadow:'0 0 30px rgba(99,102,241,0.15), 0 8px 24px rgba(0,0,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <Cloud size={28} color="#818cf8" />
+                    </div>
+                    <div style={{ fontSize:'16px', fontWeight:900, color:'white', marginBottom:'6px' }}>Gamecenter Plus</div>
+                    <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)', lineHeight:1.6 }}>Bulut tabanlı<br />yönetim platformu</div>
+                    <div style={{ marginTop:'28px', display:'flex', flexDirection:'column', gap:'10px' }}>
+                      {[{icon:'bx bx-cloud',text:'Merkezi Yönetim'},{icon:'bx bx-data',text:'Bulut Yedekleme'},{icon:'bx bx-shield',text:'Lisans Kontrolü'}].map((f,i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                          <div style={{ width:'22px', height:'22px', borderRadius:'6px', background:'rgba(99,102,241,0.12)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            <i className={f.icon} style={{ color:'#818cf8', fontSize:'11px' }} />
+                          </div>
+                          <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)', fontWeight:500 }}>{f.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SAĞ form */}
+                <div style={{ flex:1, padding:'44px 40px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                  <div style={{ marginBottom:'28px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                      <span style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.12em', color:'rgba(129,140,248,0.7)', textTransform:'uppercase' }}>Bulut Girişi</span>
+                      <div style={{ flex:1, height:'1px', background:'linear-gradient(90deg, rgba(99,102,241,0.2) 0%, transparent 100%)' }} />
+                    </div>
+                    <h2 style={{ fontSize:'24px', fontWeight:900, color:'white', margin:0, lineHeight:1.2 }}>Hesabınıza<br />giriş yapın</h2>
+                    <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.3)', marginTop:'8px' }}>Gamecenter Plus kimlik bilgilerinizi girin</p>
+                  </div>
+
+                  {error && (
+                    <div style={{ padding:'10px 14px', background:'rgba(239,68,68,0.07)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'12px', display:'flex', alignItems:'flex-start', gap:'10px', color:'#fca5a5', marginBottom:'20px', fontSize:'13px' }}>
+                      <AlertTriangle size={15} style={{ flexShrink:0, marginTop:'1px' }} /><span>{error}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleLogin} style={{ display:'flex', flexDirection:'column', gap:'12px' }} autoComplete="off">
+                    {[
+                      { type:'email', name:'email', val:email, set:setEmail, ph:'E-Posta Adresi', icon:'bx bx-envelope', ac:'off' },
+                      { type:'password', name:'password', val:password, set:setPassword, ph:'Şifre', icon:'bx bx-lock-alt', ac:'new-password' },
+                    ].map((f, i) => (
+                      <div key={i} style={{ position:'relative' }}>
+                        <div style={{ position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', color:'rgba(255,255,255,0.25)', pointerEvents:'none' }}>
+                          <i className={f.icon} style={{ fontSize:'16px' }} />
+                        </div>
+                        <input type={f.type} name={f.name} autoComplete={f.ac} required value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                          style={{ width:'100%', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'12px 14px 12px 40px', fontSize:'14px', color:'white', outline:'none', boxSizing:'border-box', transition:'all 0.2s' }}
+                          onFocus={e => { e.target.style.borderColor='rgba(99,102,241,0.5)'; e.target.style.background='rgba(99,102,241,0.06)'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'; }}
+                          onBlur={e => { e.target.style.borderColor='rgba(255,255,255,0.08)'; e.target.style.background='rgba(255,255,255,0.04)'; e.target.style.boxShadow='none'; }}
+                        />
+                      </div>
+                    ))}
+
+                    <label style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer', color:'rgba(255,255,255,0.35)', fontSize:'12px', fontWeight:500, userSelect:'none', paddingTop:'2px' }}>
+                      <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} style={{ accentColor:'#6366f1', width:'14px', height:'14px', cursor:'pointer' }} />
+                      Beni Hatırla
+                    </label>
+
+                    <button disabled={loading} type="submit"
+                      style={{ width:'100%', padding:'13px', borderRadius:'12px', border:'none', cursor:loading ? 'not-allowed' : 'pointer', background:'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color:'white', fontWeight:700, fontSize:'14px', boxShadow:'0 4px 20px rgba(99,102,241,0.3), 0 0 0 1px rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', opacity:loading ? 0.7 : 1, transition:'all 0.2s', marginTop:'4px' }}
+                      onMouseEnter={e => { if (!loading) e.currentTarget.style.boxShadow='0 6px 28px rgba(99,102,241,0.45), 0 0 0 1px rgba(99,102,241,0.3)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.boxShadow='0 4px 20px rgba(99,102,241,0.3), 0 0 0 1px rgba(99,102,241,0.2)'; }}
+                    >
+                      {loading ? <Loader2 size={16} className="animate-spin" /> : 'Giriş Yap'}
+                    </button>
+                  </form>
+
+                  <div style={{ marginTop:'24px', paddingTop:'20px', borderTop:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.2)' }}>Henüz hesabınız yok mu?</span>
+                    <button type="button" onClick={() => window.open('https://gamecenter.rcpdkc.com', '_blank')}
+                      style={{ fontSize:'12px', fontWeight:600, color:'rgba(129,140,248,0.7)', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px', transition:'color 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.color='#818cf8'}
+                      onMouseLeave={e => e.currentTarget.style.color='rgba(129,140,248,0.7)'}
+                    >Kayıt Ol <Sparkles size={12} /></button>
+                  </div>
+                </div>
+
               </div>
             )}
-            
-            <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
-              <div>
-                <input 
-                  type="email" 
-                  name="email"
-                  autoComplete="off"
-                  required 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)', color: '#ffffff' }}
-                  className="w-full border border-white/5 rounded-xl px-4 py-3.5 text-sm focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-gray-500" 
-                  placeholder="E-Posta Adresi" 
-                />
-              </div>
-              <div>
-                <input 
-                  type="password" 
-                  name="password"
-                  autoComplete="new-password"
-                  required 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)', color: '#ffffff' }}
-                  className="w-full border border-white/5 rounded-xl px-4 py-3.5 text-sm focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-gray-500" 
-                  placeholder="Şifre" 
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-white transition-colors">
-                  <input 
-                    type="checkbox" 
-                    checked={rememberMe} 
-                    onChange={e => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded bg-black/40 border-white/10 text-blue-500 focus:ring-blue-500/50 cursor-pointer accent-blue-500"
-                  />
-                  <span className="text-[13px] font-medium">Beni Hatırla</span>
-                </label>
-              </div>
 
-              <button disabled={loading} type="submit" className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 mt-2">
-                {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sisteme Giriş Yap'}
-              </button>
-            </form>
-            
-            <div className="mt-8 text-center flex flex-col items-center gap-3">
-              <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold">Hesabınız Yok Mu?</span>
-              <button 
-                type="button" 
-                onClick={() => window.open('https://gamecenter.rcpdkc.com', '_blank')} 
-                className="text-[13px] font-semibold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1.5 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg"
-              >
-                Bulut Ağına Katılın <Sparkles size={14} />
-              </button>
-            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>,
     document.body
   );
 }
+
+
 
 function TopNavbar({ toggleMobileSidebar }) {
   const { theme, toggleTheme } = useContext(ThemeContext);
